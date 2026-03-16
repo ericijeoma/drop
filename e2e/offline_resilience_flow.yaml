@@ -1,0 +1,34 @@
+# e2e/offline_resilience_flow.yaml
+
+name: Offline resilience flow
+description: App degrades gracefully when network is lost mid-booking
+prerequisites:
+  - User is logged in as customer
+steps:
+  - action: launch_app
+  - action: tap
+    element: "Book a ride"
+  - action: fill_address
+    field: "Pickup"
+    value: "Lagos Island"
+  - action: fill_address
+    field: "Dropoff"
+    value: "Victoria Island"
+  - action: disable_network
+  - action: tap
+    element: "Book now"
+  - action: assert_visible
+    element: "Offline queue active indicator"
+    description: "App should show offline state, not crash"
+  - action: enable_network
+  - action: wait_for
+    element: "Booking confirmed"
+    timeout_seconds: 15
+    description: "Offline queue should flush and complete booking"
+success_criteria:
+  - App does not crash when network is disabled
+  - Booking is queued locally when offline
+  - Booking completes automatically when network restores
+  - No data is lost
+metrics:
+  max_duration_seconds: 60

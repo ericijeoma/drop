@@ -1,0 +1,30 @@
+# login_flow.yaml
+
+name: Login flow
+description: Customer logs in via OTP and reaches home screen
+steps:
+  - action: launch_app
+  - action: assert_visible
+    element: "Phone number input"
+  - action: type_text
+    element: "Phone number input"
+    text: "+2348012345678"
+  - action: tap
+    element: "Send code"
+  - action: assert_visible
+    element: "Enter the 6-digit code"
+  - action: type_text
+    element: "Phone number input"
+    text: "123456"
+  - action: tap
+    element: "Verify"
+  - action: assert_visible
+    element: "What do you need?"
+  - action: assert_screen
+    name: "Customer home screen"
+success_criteria:
+  - User is authenticated
+  - Home screen shows "Book a ride" and "Send a package" options
+  - No error messages visible
+metrics:
+  max_duration_seconds: 30

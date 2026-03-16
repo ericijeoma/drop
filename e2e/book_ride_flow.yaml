@@ -1,0 +1,40 @@
+# book_ride_flow.yaml
+name: Book ride flow
+description: Customer books a ride from home to destination
+prerequisites:
+  - User is logged in as customer
+  - At least one driver is online in test environment
+steps:
+  - action: tap
+    element: "Book a ride"
+  - action: assert_visible
+    element: "Book a ride heading"
+  - action: type_text
+    element: "Pickup address search"
+    text: "Lagos Island"
+  - action: wait_for
+    element: "Address search results"
+    timeout_seconds: 5
+  - action: tap
+    element: "First address result"
+  - action: type_text
+    element: "Dropoff address search"
+    text: "Victoria Island"
+  - action: wait_for
+    element: "Address search results"
+    timeout_seconds: 5
+  - action: tap
+    element: "First address result"
+  - action: tap
+    element: "Book now"
+  - action: wait_for
+    element: "Track ride screen"
+    timeout_seconds: 10
+  - action: assert_visible
+    element: "Map showing your ride route"
+success_criteria:
+  - Ride is created with status 'pending'
+  - Customer is redirected to tracking screen
+  - Map shows pickup and dropoff markers
+metrics:
+  max_duration_seconds: 45

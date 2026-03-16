@@ -245,7 +245,7 @@ describe('RidePolicy', () => {
   });
 
   it('has rate per km for all vehicle types', () => {
-    const vehicleTypes: Array<keyof typeof RidePolicy.RATE_PER_KM> = ['motorbike', 'car', 'van'];
+    const vehicleTypes: (keyof typeof RidePolicy.RATE_PER_KM)[] = ['motorbike', 'car', 'van'];
     vehicleTypes.forEach(v => {
       expect(RidePolicy.RATE_PER_KM[v]).toBeGreaterThan(0);
     });
@@ -264,7 +264,7 @@ describe('RidePolicy', () => {
   it('matching radii are in ascending order', () => {
     const radii = [...RidePolicy.MATCHING_RADII_KM];
     for (let i = 1; i < radii.length; i++) {
-      expect(radii[i]).toBeGreaterThan(radii[i - 1]);
+      expect(radii[i]!).toBeGreaterThan(radii[i - 1]!);
     }
   });
 });

@@ -71,7 +71,7 @@ export class User {
 
   private static validatePhone(phone: string): void {
     // E.164 format: +[country code][number], 7-15 digits total
-    const e164 = /^\+[1-9]\d{6,14}$/;
+    const e164 = /^\+[1-9]\d{7,14}$/;
     if (!e164.test(phone)) {
       throw new DomainError(
         'Phone number must be in E.164 format (e.g. +2348012345678)',

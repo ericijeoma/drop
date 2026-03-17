@@ -4,16 +4,17 @@
 
 // src/app/(driver)/dashboard.tsx
 import { useState, useCallback }  from 'react';
-import { View, Text, Switch, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Switch, ScrollView } from 'react-native';
 import { useSafeAreaInsets }      from 'react-native-safe-area-context';
 import { useMutation }            from '@tanstack/react-query';
 import { useTheme }               from '@/shared/lib/theme';
 import { useAuth }                from '@/shared/hooks/useAuth';
 import { useDriverLocation }      from '@/shared/hooks/useDriverLocation';
 import { ThemeToggle }            from '@/components/ThemeToggle';
-import { UpdateDriverStatusUseCase } from '@/domains/drivers/usecases/UpdateDriverStatusUseCase';
+import { UpdateDriverStatusUseCase } from '@/domains/driver/usecases/UpdateDriverStatusUseCase';
 import { SupabaseDriverRepository }  from '@/shared/repositories/SupabaseDriverRepository';
 import type { Coords }               from '@/shared/types';
+import {styles}                      from '@/shared/styles';
 
 const driverRepo = new SupabaseDriverRepository();
 const useCase    = new UpdateDriverStatusUseCase(driverRepo);

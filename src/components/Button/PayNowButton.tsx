@@ -3,22 +3,26 @@
 // Stripe payment trigger button.
 // ────────────────────────────────────────────────────────────
 
-import { Pressable, Text, StyleSheet } from 'react-native';
-import { useTheme }                    from '@/shared/lib/theme';
-import { formatNaira }                 from '@/shared/utils/format';
+import { formatNaira } from "@/shared/utils/format";
+import { PrimaryButton } from "./PrimaryButton";
 
 interface PayNowButtonProps {
   fareAmount: number;
-  onPress:    () => void;
-  loading?:   boolean;
-  disabled?:  boolean;
+  onPress: () => void;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
-export function PayNowButton({ fareAmount, onPress, loading, disabled }: PayNowButtonProps) {
-  const theme = useTheme();
+export function PayNowButton({
+  fareAmount,
+  onPress,
+  loading,
+  disabled,
+}: PayNowButtonProps) {
+  
   return (
     <PrimaryButton
-      label={loading ? 'Processing...' : `Pay ${formatNaira(fareAmount)}`}
+      label={loading ? "Processing..." : `Pay ${formatNaira(fareAmount)}`}
       onPress={onPress}
       loading={loading}
       disabled={disabled}
@@ -27,5 +31,3 @@ export function PayNowButton({ fareAmount, onPress, loading, disabled }: PayNowB
     />
   );
 }
-
-

@@ -7,7 +7,7 @@
 import { useRef, useEffect }                                         from 'react';
 import { View, StyleSheet, AccessibilityInfo }                       from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region }  from 'react-native-maps';
-import { useTheme }                                                  from '@/shared/lib/theme';
+import { useTheme, darkTheme }                                                  from '@/shared/lib/theme';
 import { formatDistance }                                            from '@/shared/utils/format';
 import type { Coords }                                               from '@/shared/types';
 
@@ -15,7 +15,7 @@ interface AccessibleRideMapProps {
   pickupCoords:    Coords;
   dropoffCoords:   Coords;
   driverCoords?:   Coords | null;
-  polyline?:       Array<[number, number]>;
+  polyline?:       [number, number][];
   driverDistanceM?: number;
   accessibilityLabel?: string;
 }
@@ -53,7 +53,7 @@ export function AccessibleRideMap({
       coords.map(c => ({ latitude: c.lat, longitude: c.lng })),
       { edgePadding: { top: 60, right: 40, bottom: 60, left: 40 }, animated: true }
     );
-  }, [driverCoords]);
+  }, [driverCoords, dropoffCoords, pickupCoords]);
 
   const mapRegion: Region = {
     latitude:       pickupCoords.lat,
@@ -78,7 +78,7 @@ export function AccessibleRideMap({
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         initialRegion={mapRegion}
-        customMapStyle={theme === require('@/shared/lib/theme').darkTheme ? darkMapStyle : []}
+        customMapStyle={theme === darkTheme ? darkMapStyle : []}
         showsUserLocation
         showsMyLocationButton={false}
         accessible={false}  // MapView itself is not screen-reader navigable — container handles it

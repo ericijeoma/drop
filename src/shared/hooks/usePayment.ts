@@ -19,11 +19,12 @@ type PaymentTarget =
   | { rideId: string;  orderId?: never }
   | { orderId: string; rideId?: never  };
 
-interface UsePaymentOptions extends PaymentTarget {
+// ✅ type alias with & handles unions correctly
+type UsePaymentOptions = PaymentTarget & {
   fareAmount: number;
   onSuccess:  () => void;
   onError?:   (message: string) => void;
-}
+};
 
 interface UsePaymentResult {
   pay:          () => Promise<void>;

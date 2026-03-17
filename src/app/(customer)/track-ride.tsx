@@ -6,30 +6,34 @@
 //
 // File path: src/app/(customer)/track-ride.tsx
 
-import { useState, useCallback }       from 'react';
+import { useState, useCallback, useMemo } from "react";
 import {
-  View, Text, StyleSheet,
-  ActivityIndicator, Alert,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
   AccessibilityInfo,
-}                                       from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets }            from 'react-native-safe-area-context';
-import { useTheme }                     from '@/shared/lib/theme';
-import { useActiveRide }                from '@/shared/hooks/useActiveRide';
-import { usePayment }                   from '@/shared/hooks/usePayment';
-import { AccessibleRideMap }            from '@/components/Map/AccessibleRideMap';
-import { PayNowButton }                 from '@/components/Button/PayNowButton';
-import { PrimaryButton }                from '@/components/Button/PrimaryButton';
-import { formatNaira, formatDuration }  from '@/shared/utils/format';
-import { getRoute }                     from '@/shared/utils/directions';
-import { useQuery }                     from '@tanstack/react-query';
-import type { Coords }                  from '@/shared/types';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/shared/lib/theme";
+import { useActiveRide } from "@/shared/hooks/useActiveRide";
+import { usePayment } from "@/shared/hooks/usePayment";
+import { AccessibleRideMap } from "@/components/Map/AccessibleRideMap";
+import { PayNowButton } from "@/components/Button/PayNowButton";
+import { PrimaryButton } from "@/components/Button/PrimaryButton";
+import { formatNaira, formatDuration } from "@/shared/utils/format";
+import { getRoute } from "@/shared/utils/directions";
+import { useQuery } from "@tanstack/react-query";
+import { useRealtimeWithFallback } from "@/shared/hooks/useRealtimeWithFallback";
+import type { Coords } from "@/shared/types";
 
 export default function TrackRideScreen() {
-  const theme                      = useTheme();
-  const insets                     = useSafeAreaInsets();
-  const router                     = useRouter();
-  const { rideId }                  = useLocalSearchParams<{ rideId: string }>();
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const [driverCoords, setDriverCoords] = useState<Coords | null>(null);
 
   // ── Live ride data (Realtime + polling fallback) ──────────
@@ -37,37 +41,63 @@ export default function TrackRideScreen() {
 
   // ── Route polyline ────────────────────────────────────────
   const { data: route } = useQuery({
-    queryKey: ['route', ride?.pickupCoords, ride?.dropoffCoords],
-    queryFn:  () => ride
-      ? getRoute(ride.pickupCoords, ride.dropoffCoords)
-      : null,
-    enabled:  !!ride,
+    queryKey: ["route", ride?.pickupCoords, ride?.dropoffCoords],
+    queryFn: () =>
+      ride ? getRoute(ride.pickupCoords, ride.dropoffCoords) : null,
+    enabled: !!ride,
     staleTime: Infinity, // route does not change mid-trip
   });
 
-  // ── Update driver coords from realtime ───────────────────
-  // In production, driver coords come from the realtime subscription
-  // on the drivers table. We pass them to the map here.
-  // For now, ride.pickupCoords approximates driver position.
-  const onDriverLocationUpdate = useCallback((coords: Coords) => {
-    setDriverCoords(coords);
-    AccessibilityInfo.announceForAccessibility(
-      'Driver location updated'
-    );
-  }, []);
+  // ── Driver location fallback — no REST needed, coords via realtime only
+  const driverLocationFallback = useCallback(async () => {
+    if (!ride?.driverId) return;
+  }, [ride?.driverId]);
+
+  // ── Stable filter — only subscribes once driverId is known
+  const driverFilter = useMemo(
+    () => (ride?.driverId ? { column: "id", value: ride.driverId } : undefined),
+    [ride?.driverId],
+  );
+
+  useRealtimeWithFallback<Record<string, unknown>>({
+    table: "drivers",
+    event: "UPDATE",
+    filter: driverFilter,
+    onData: useCallback((payload: Record<string, unknown>) => {
+      // PostGIS returns GeoJSON: { type: 'Point', coordinates: [lng, lat] }
+      const loc = payload.current_location as {
+        type: string;
+        coordinates: [number, number];
+      } | null;
+      if (loc?.type === "Point" && loc.coordinates.length === 2) {
+        setDriverCoords({
+          lng: loc.coordinates[0],
+          lat: loc.coordinates[1],
+        });
+        AccessibilityInfo.announceForAccessibility("Driver location updated");
+      }
+    }, []),
+    fallbackQuery: driverLocationFallback,
+    pollIntervalMs: 5_000,
+  });
 
   // ── Payment ───────────────────────────────────────────────
-  const { pay, isPaying, isComplete, error: paymentError } = usePayment({
-    rideId:     rideId!,
+  const {
+    pay,
+    isPaying,
+    isComplete,
+    error: paymentError,
+  } = usePayment({
+    rideId: rideId!,
     fareAmount: ride?.fareAmount ?? 0,
     onSuccess: () => {
       AccessibilityInfo.announceForAccessibility(
-        'Payment successful. Thank you for riding with Drop.'
+        "Payment successful. Thank you for riding with Drop.",
       );
       // Brief delay so the success state is visible before navigating
-      setTimeout(() => router.replace('/(customer)/index'), 2000);
+      setTimeout(() => router.replace("/(customer)"), 2000);
     },
-    onError: (msg) => Alert.alert('Payment failed', msg),
+    onError: (msg) => Alert.alert("Payment failed", msg),
   });
 
   // ── Loading state ─────────────────────────────────────────
@@ -88,22 +118,24 @@ export default function TrackRideScreen() {
 
   // ── Ride status label and colour ──────────────────────────
   const statusConfig: Record<string, { label: string; color: string }> = {
-    pending:    { label: 'Finding your driver...',  color: theme.warning },
-    active:     { label: 'Driver on the way',       color: theme.brand   },
-    completed:  { label: 'Ride complete',           color: theme.success },
-    cancelled:  { label: 'Ride cancelled',          color: theme.danger  },
-    timed_out:  { label: 'No driver found',         color: theme.danger  },
+    pending: { label: "Finding your driver...", color: theme.warning },
+    active: { label: "Driver on the way", color: theme.brand },
+    completed: { label: "Ride complete", color: theme.success },
+    cancelled: { label: "Ride cancelled", color: theme.danger },
+    timed_out: { label: "No driver found", color: theme.danger },
   };
-  const status = statusConfig[ride.status] ?? { label: ride.status, color: theme.textSecondary };
+  const status = statusConfig[ride.status] ?? {
+    label: ride.status,
+    color: theme.textSecondary,
+  };
 
   // ── Driver ETA (rough calculation from distance) ─────────
   const etaSeconds = driverCoords
-    ? undefined  // real ETA from OSRM would go here in production
+    ? undefined // real ETA from OSRM would go here in production
     : undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-
       {/* ── Map (takes most of the screen) ── */}
       <View style={styles.mapContainer}>
         <AccessibleRideMap
@@ -135,8 +167,11 @@ export default function TrackRideScreen() {
       <View
         style={[
           styles.sheet,
-          { backgroundColor: theme.surface, borderColor: theme.border,
-            paddingBottom: insets.bottom + 16 },
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+            paddingBottom: insets.bottom + 16,
+          },
         ]}
       >
         {/* Status */}
@@ -167,7 +202,9 @@ export default function TrackRideScreen() {
           </View>
           <View style={[styles.routeLine, { backgroundColor: theme.border }]} />
           <View style={styles.routeItem}>
-            <View style={[styles.routeDot, { backgroundColor: theme.danger }]} />
+            <View
+              style={[styles.routeDot, { backgroundColor: theme.danger }]}
+            />
             <Text
               style={[styles.routeAddress, { color: theme.text }]}
               numberOfLines={1}
@@ -225,20 +262,24 @@ export default function TrackRideScreen() {
         )}
 
         {/* Pay button — only shown when ride is completed and not yet paid */}
-        {ride.status === 'completed' && ride.paymentStatus === 'pending' && !isComplete && (
-          <PayNowButton
-            fareAmount={ride.fareAmount}
-            onPress={pay}
-            loading={isPaying}
-            disabled={isPaying}
-          />
-        )}
+        {ride.status === "completed" &&
+          ride.paymentStatus === "pending" &&
+          !isComplete && (
+            <PayNowButton
+              fareAmount={ride.fareAmount}
+              onPress={pay}
+              loading={isPaying}
+              disabled={isPaying}
+            />
+          )}
 
         {/* Done button — only shown after payment or on terminal states */}
-        {(isComplete || ride.status === 'cancelled' || ride.status === 'timed_out') && (
+        {(isComplete ||
+          ride.status === "cancelled" ||
+          ride.status === "timed_out") && (
           <PrimaryButton
             label="Done"
-            onPress={() => router.replace('/(customer)/index')}
+            onPress={() => router.replace("/(customer)")}
             variant="ghost"
             accessibilityHint="Return to the home screen"
           />
@@ -249,25 +290,47 @@ export default function TrackRideScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:      { flex: 1 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  loadingText:    { fontSize: 15 },
-  mapContainer:   { flex: 1, position: 'relative' },
-  pollBadge:      { position: 'absolute', top: 12, alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
-  pollBadgeText:  { fontSize: 12, fontWeight: '500' },
-  sheet:          { borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 1, padding: 20, gap: 14 },
-  statusRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusDot:      { width: 8, height: 8, borderRadius: 4 },
-  statusText:     { fontSize: 15, fontWeight: '600' },
-  routeRow:       { gap: 6 },
-  routeItem:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  routeDot:       { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
-  routeLine:      { width: 2, height: 16, marginLeft: 4 },
-  routeAddress:   { flex: 1, fontSize: 14 },
-  fareRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  fareLabel:      { fontSize: 14 },
-  fareAmount:     { fontSize: 22, fontWeight: '700' },
-  eta:            { fontSize: 13, textAlign: 'center' },
-  errorText:      { fontSize: 13, textAlign: 'center' },
-  successText:    { fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  container: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
+  loadingText: { fontSize: 15 },
+  mapContainer: { flex: 1, position: "relative" },
+  pollBadge: {
+    position: "absolute",
+    top: 12,
+    alignSelf: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  pollBadgeText: { fontSize: 12, fontWeight: "500" },
+  sheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderTopWidth: 1,
+    padding: 20,
+    gap: 14,
+  },
+  statusRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 15, fontWeight: "600" },
+  routeRow: { gap: 6 },
+  routeItem: { flexDirection: "row", alignItems: "center", gap: 10 },
+  routeDot: { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
+  routeLine: { width: 2, height: 16, marginLeft: 4 },
+  routeAddress: { flex: 1, fontSize: 14 },
+  fareRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  fareLabel: { fontSize: 14 },
+  fareAmount: { fontSize: 22, fontWeight: "700" },
+  eta: { fontSize: 13, textAlign: "center" },
+  errorText: { fontSize: 13, textAlign: "center" },
+  successText: { fontSize: 15, fontWeight: "600", textAlign: "center" },
 });

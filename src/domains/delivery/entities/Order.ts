@@ -1,6 +1,6 @@
 // src/domains/delivery/entities/Order.ts
 
-import type { Coords, OrderStatus, VehicleType, PaymentStatus, PackageSize } from '@/shared/types';
+import type { Coords, OrderStatus, PaymentStatus, PackageSize } from '@/shared/types';
 import { DomainError } from '@/shared/types';
 
 const ALLOWED_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {

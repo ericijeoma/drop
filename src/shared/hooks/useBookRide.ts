@@ -4,10 +4,10 @@
 // ────────────────────────────────────────────────────────────
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookRideUseCase }              from '@/domains/rides/usecases/BookRideUseCase';
+import { BookRideUseCase }              from '@/domains/ride/usecases/BookRideUseCase';
 import { SupabaseRideRepository }       from '@/shared/repositories/SupabaseRideRepository';
 import { SupabaseAuthRepository }       from '@/shared/repositories/SupabaseAuthRepository';
-import type { BookRideInput }           from '@/domains/rides/usecases/BookRideUseCase';
+import type { BookRideInput }           from '@/domains/ride/usecases/BookRideUseCase';
 
 const rideRepo = new SupabaseRideRepository();
 const authRepo = new SupabaseAuthRepository();

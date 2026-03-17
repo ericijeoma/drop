@@ -17,10 +17,8 @@ import { useSafeAreaInsets }           from 'react-native-safe-area-context';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme }                    from '@/shared/lib/theme';
 import { useAuth }                     from '@/shared/hooks/useAuth';
-import { PrimaryButton }               from '@/components/Button/PrimaryButton';
 import { BanUserUseCase }              from '@/domains/admin/usecases/BanUserUseCase';
 import { supabase }                    from '@/shared/lib/supabase';
-import { User }                        from '@/domains/auth/entities/User';
 import { formatDateTime, formatPhone } from '@/shared/utils/format';
 
 const banUseCase = new BanUserUseCase();
@@ -115,7 +113,7 @@ export default function AdminUsersScreen() {
         {
           text: 'Ban',
           style: 'destructive',
-          onPress: (reason) => {
+          onPress: (reason: string | undefined) => {
             if (!reason?.trim()) {
               Alert.alert('Reason required', 'Please provide a ban reason.');
               return;

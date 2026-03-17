@@ -7,7 +7,7 @@
 
 import { useState }                    from 'react';
 import {
-  View, Text, StyleSheet,
+  View, Text, TextInput, StyleSheet,
   ScrollView, Alert, Pressable,
 }                                       from 'react-native';
 import { useRouter }                   from 'expo-router';
@@ -105,26 +105,8 @@ export default function SendPackageScreen() {
         <Text style={[styles.label, { color: theme.textSecondary }]}>
           What are you sending?
         </Text>
-        <View
-          style={[
-            styles.descInput,
-            {
-              borderColor:     descError ? theme.danger : theme.border,
-              backgroundColor: theme.surface,
-            },
-          ]}
-        >
-          <Text
-            style={[styles.descText, { color: packageDesc ? theme.text : theme.textTertiary }]}
-            onPress={() => {}}
-            accessible
-            accessibilityRole="none"
-          />
-          {/* We use a native TextInput here in the real implementation */}
-          {/* Shown as a styled view for this file */}
-        </View>
-        {/* In real project replace the above View with: */}
-        {/*
+        
+       
         <TextInput
           value={packageDesc}
           onChangeText={(t) => { setPackageDesc(t); setDescError(''); }}
@@ -137,7 +119,6 @@ export default function SendPackageScreen() {
           maxLength={120}
           returnKeyType="done"
         />
-        */}
         {descError ? (
           <Text
             style={[styles.error, { color: theme.danger }]}

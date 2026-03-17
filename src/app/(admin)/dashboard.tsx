@@ -3,13 +3,14 @@
 // ════════════════════════════════════════════════════════════
 
 // src/app/(admin)/dashboard.tsx
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView} from 'react-native';
 import { useSafeAreaInsets }                  from 'react-native-safe-area-context';
 import { useTheme }                           from '@/shared/lib/theme';
 import { useAuth }                            from '@/shared/hooks/useAuth';
 import { useAdminStats }                      from '@/shared/hooks/useAdminStats';
 import { ThemeToggle }                        from '@/components/ThemeToggle';
 import { formatNaira }                        from '@/shared/utils/format';
+import {styles}                               from '@/shared/styles';
 
 export function AdminDashboardScreen() {
   const theme       = useTheme();

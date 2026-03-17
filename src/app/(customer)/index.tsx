@@ -3,12 +3,13 @@
 // ════════════════════════════════════════════════════════════
 
 // src/app/(customer)/index.tsx — Home screen
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter }              from 'expo-router';
 import { useSafeAreaInsets }      from 'react-native-safe-area-context';
 import { useTheme }               from '@/shared/lib/theme';
 import { useAuth }                from '@/shared/hooks/useAuth';
 import { ThemeToggle }            from '@/components/ThemeToggle';
+import {styles}                   from '@/shared/styles';
 
 export function CustomerHomeScreen() {
   const theme  = useTheme();

@@ -1,6 +1,6 @@
 // src/app/(customer)/book-ride.tsx — Booking screen
 import { useState }           from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
 import { useRouter }          from 'expo-router';
 import { useSafeAreaInsets }  from 'react-native-safe-area-context';
 import { useTheme }           from '@/shared/lib/theme';
@@ -8,9 +8,9 @@ import { useAuth }            from '@/shared/hooks/useAuth';
 import { useBookRide }        from '@/shared/hooks/useBookRide';
 import { AddressInput }       from '@/components/Input/AddressInput';
 import { PrimaryButton }      from '@/components/Button/PrimaryButton';
-import { formatNaira }        from '@/shared/utils/format';
-import type { AddressWithCoords } from '@/shared/types';
-import type { VehicleType }       from '@/shared/types';
+import type { AddressWithCoords , VehicleType } from '@/shared/types';
+import {styles}               from '@/shared/styles';
+
 
 export function BookRideScreen() {
   const theme   = useTheme();
@@ -42,7 +42,7 @@ export function BookRideScreen() {
       },
       {
         onSuccess: (result) => {
-          router.push(`/(customer)/track-ride?rideId=${result.rideId}`);
+          router.push({ pathname: '/(customer)/track-ride', params: { rideId:  result.rideId } });
         },
         onError: (e: Error) => {
           Alert.alert('Booking failed', e.message);

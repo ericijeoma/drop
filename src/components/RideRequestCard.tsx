@@ -4,13 +4,14 @@
 // Reanimated worklets run on UI thread — smooth even under load.
 // ────────────────────────────────────────────────────────────
 
-import { View, Text, StyleSheet, Dimensions, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, Dimensions} from 'react-native';
 import { Gesture, GestureDetector }  from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle,
-  withSpring, withTiming, runOnJS,
+  withSpring, withTiming,
   interpolate, Extrapolation,
 }                                    from 'react-native-reanimated';
+import { scheduleOnRN }              from 'react-native-worklets';
 import { useTheme }                  from '@/shared/lib/theme';
 import { formatNaira, formatDistance, formatDuration } from '@/shared/utils/format';
 
@@ -44,12 +45,12 @@ export function RideRequestCard({
 
   function handleAccept() {
     'worklet';
-    translateX.value = withTiming(SCREEN_W, {}, () => { runOnJS(onAccept)(); });
+    translateX.value = withTiming(SCREEN_W, {}, () => { scheduleOnRN(onAccept) });
   }
 
   function handleDecline() {
     'worklet';
-    translateX.value = withTiming(-SCREEN_W, {}, () => { runOnJS(onDecline)(); });
+    translateX.value = withTiming(-SCREEN_W, {}, () => { scheduleOnRN(onDecline) });
   }
 
   const gesture = Gesture.Pan()

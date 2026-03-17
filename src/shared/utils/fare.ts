@@ -2,7 +2,7 @@
 // Pure fare calculation — no side effects, no imports from infrastructure.
 // Tested in isolation. Used by BookRideUseCase and PlaceOrderUseCase.
 
-import { RidePolicy } from '@/domains/rides/entities/RidePolicy';
+import { RidePolicy } from '@/domains/ride/entities/RidePolicy';
 import type { VehicleType } from '@/shared/types';
 
 export interface FareBreakdown {

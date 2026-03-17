@@ -3,8 +3,7 @@
 // ────────────────────────────────────────────────────────────
 
 import type { DriverStatus, VehicleType } from "@/shared/types";
-import { DomainError } from "@/shared/types";
-import type { Coords } from "@/shared/types";
+import { DomainError, Coords } from "@/shared/types";
 
 export interface DriverProfileProps {
   readonly id: string;

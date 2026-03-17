@@ -2,7 +2,7 @@
 // src/domains/auth/usecases/LoginUseCase.ts
 // ────────────────────────────────────────────────────────────
 
-import type { AuthRepository } from '../repositories/supabaseAuthRepository';
+import type { AuthRepository } from '../repositories/AuthRepository';
 import { User }                from '../entities/User';
 import { DomainError }         from '@/shared/types';
 

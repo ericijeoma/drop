@@ -6,7 +6,7 @@
 //
 // File path: src/app/(driver)/delivery-trip.tsx
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback} from 'react';
 import {
   View, Text, StyleSheet,
   Alert, ActivityIndicator,
@@ -130,8 +130,6 @@ export default function DeliveryTripScreen() {
       </View>
     );
   }
-
-  const targetCoords  = phase === 'to_pickup' ? order.pickupCoords : order.dropoffCoords;
   const targetAddress = phase === 'to_pickup' ? order.pickupAddress : order.dropoffAddress;
 
   return (
@@ -145,8 +143,8 @@ export default function DeliveryTripScreen() {
           driverCoords={driverCoords}
           accessibilityLabel={
             phase === 'to_pickup'
-              ? `Head to pickup at ${order.pickupAddress}`
-              : `Deliver to ${order.dropoffAddress}`
+              ? `Head to pickup at ${targetAddress}`
+              : `Deliver to ${targetAddress}`
           }
         />
       </View>

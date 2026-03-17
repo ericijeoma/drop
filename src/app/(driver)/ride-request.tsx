@@ -17,10 +17,10 @@ import { useMutation, useQuery }        from '@tanstack/react-query';
 import { useTheme }                     from '@/shared/lib/theme';
 import { useAuth }                      from '@/shared/hooks/useAuth';
 import { RideRequestCard }              from '@/components/RideRequestCard';
-import { AcceptRideUseCase }            from '@/domains/rides/usecases/AcceptRideUseCase';
+import { AcceptRideUseCase }            from '@/domains/ride/usecases/AcceptRideUseCase';
 import { SupabaseRideRepository }       from '@/shared/repositories/SupabaseRideRepository';
 import { SupabaseDriverRepository }     from '@/shared/repositories/SupabaseDriverRepository';
-import { RidePolicy }                   from '@/domains/rides/entities/RidePolicy';
+import { RidePolicy }                   from '@/domains/ride/entities/RidePolicy';
 import { formatDuration }               from '@/shared/utils/format';
 
 const rideRepo   = new SupabaseRideRepository();
@@ -60,7 +60,7 @@ export default function RideRequestScreen() {
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
+  }, [router]);
 
   // Announce countdown at 60s and 30s for screen reader users
   useEffect(() => {

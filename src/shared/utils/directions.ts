@@ -6,6 +6,7 @@
 // ────────────────────────────────────────────────────────────
 
 import type { Coords } from '@/shared/types';
+import {logger } from '../lib/logger'
 
 const OSRM_BASE = 'https://router.project-osrm.org/route/v1/driving';
 const TIMEOUT_MS = 8_000;
@@ -13,7 +14,7 @@ const TIMEOUT_MS = 8_000;
 export interface RouteResult {
   readonly distanceKm:  number;
   readonly durationSec: number;
-  readonly polyline:    Array<[number, number]>; // [lat, lng] pairs
+  readonly polyline:    [number, number][]; // [lat, lng] pairs
 }
 
 /**
@@ -33,11 +34,11 @@ export async function getRoute(from: Coords, to: Coords): Promise<RouteResult> {
     if (!res.ok) throw new Error(`OSRM returned ${res.status}`);
 
     const data = await res.json() as {
-      routes: Array<{
+      routes: {
         distance: number;
         duration: number;
-        geometry: { coordinates: Array<[number, number]> };
-      }>;
+        geometry: { coordinates: [number, number][] };
+      }[];
     };
 
     const route = data.routes[0];
@@ -50,6 +51,8 @@ export async function getRoute(from: Coords, to: Coords): Promise<RouteResult> {
       polyline:    route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
     };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.warn('OSRM route fetch failed — using haversine fallback', { message });
     // Fallback: Haversine straight-line distance
     const straightLine = haversineKm(from, to);
     // Road distance is typically 1.3x straight-line in urban areas

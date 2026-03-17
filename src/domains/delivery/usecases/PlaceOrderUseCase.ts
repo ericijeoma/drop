@@ -4,7 +4,7 @@
 
 import type { OrderRepository } from '../repositories/OrderRepository';
 import type { AuthRepository }  from '@/domains/auth/repositories/AuthRepository';
-import type { RideRepository }  from '@/domains/rides/repositories/RideRepository';
+import type { RideRepository }  from '@/domains/ride/repositories/RideRepository';
 import { getRoute }             from '@/shared/utils/directions';
 import { calculateFare }        from '@/shared/utils/fare';
 import { DomainError }          from '@/shared/types';

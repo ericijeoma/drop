@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────────────
 
 import { useState }                                                    from 'react';
-import { View, TextInput, Text, StyleSheet, Pressable }                from 'react-native';
+import { View, TextInput, Text, StyleSheet}                from 'react-native';
 import { useTheme }                                                    from '@/shared/lib/theme';
 
 interface PhoneInputProps {

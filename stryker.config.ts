@@ -13,9 +13,9 @@
 // Mutation score = killed / total × 100.
 // A 80% mutation score means 80% of real bugs would be caught by your tests.
 
-import type { Config } from '@stryker-mutator/core';
+import type  { PartialStrykerOptions} from '@stryker-mutator/api/core';
 
-const config: Config = {
+const config: PartialStrykerOptions  = {
   packageManager: 'npm',
   reporters:      ['html', 'clear-text', 'progress'],
   testRunner:     'jest',

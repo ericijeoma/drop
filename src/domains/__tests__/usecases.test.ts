@@ -3,19 +3,18 @@
 // All repositories are mocked — zero Supabase calls, zero network.
 // Run with: npm test -- --testPathPattern=usecases
 
-import { BookRideUseCase }           from '../rides/usecases/BookRideUseCase';
-import { AcceptRideUseCase }          from '../rides/usecases/AcceptRideUseCase';
-import { CompleteRideUseCase }        from '../rides/usecases/CompleteRideUseCase';
-import { RateDriverUseCase }          from '../rides/usecases/RateDriverUseCase';
+import { BookRideUseCase }            from '../ride/usecases/BookRideUseCase';
+import { AcceptRideUseCase }          from '../ride/usecases/AcceptRideUseCase';
+import { CompleteRideUseCase }        from '../ride/usecases/CompleteRideUseCase';
 import { PlaceOrderUseCase }          from '../delivery/usecases/PlaceOrderUseCase';
 import { ConfirmDeliveryUseCase }     from '../delivery/usecases/ConfirmDeliveryUseCase';
-import { UpdateDriverStatusUseCase }  from '../drivers/usecases/UpdateDriverStatusUseCase';
+import { UpdateDriverStatusUseCase }  from '../driver/usecases/UpdateDriverStatusUseCase';
 import { LoginUseCase }               from '../auth/usecases/LoginUseCase';
-import { Ride }                       from '../rides/entities/Ride';
+import { Ride }                       from '../ride/entities/Ride';
 import { Order }                      from '../delivery/entities/Order';
-import { DriverProfile }              from '../drivers/entities/DriverProfile';
+import { DriverProfile }              from '../driver/entities/DriverProfile';
 import { User }                       from '../auth/entities/User';
-import { DomainError }                from '@/shared/types';
+
 
 // ── Mock factories ───────────────────────────────────────────
 
@@ -286,7 +285,7 @@ describe('CompleteRideUseCase', () => {
 
     await expect(useCase.execute('ride-1', 'user-2')).resolves.toBeUndefined();
     expect(driverRepo.updateStatus).toHaveBeenCalledWith('driver-1', 'online');
-    expect(paymentRepo.create).toHaveBeenCalledOnce();
+    expect(paymentRepo.create).toHaveBeenCalledTimes(1);
   });
 
   it('throws if driver does not own the ride', async () => {

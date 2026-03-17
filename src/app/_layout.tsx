@@ -37,11 +37,14 @@ import { logger }                        from '@/shared/lib/logger';
 // Show a banner even when the app is open (e.g. driver gets a ride request
 // while already in the app on a different screen)
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert:   true,
-    shouldPlaySound:   true,
-    shouldSetBadge:    false,
-  }),
+  // ✅ Fix — add the two new required fields
+handleNotification: async () => ({
+  shouldShowAlert:  true,
+  shouldShowBanner: true,   // ← add
+  shouldShowList:   true,   // ← add
+  shouldPlaySound:  true,
+  shouldSetBadge:   false,
+}),
 });
 
 const persister = createAsyncStoragePersister({
@@ -61,8 +64,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const segments              = useSegments();
   const router                = useRouter();
   const appState              = useRef<AppStateStatus>(AppState.currentState);
-  const notifResponseListener = useRef<Notifications.Subscription>();
-  const notifReceivedListener = useRef<Notifications.Subscription>();
+  const notifResponseListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+  const notifReceivedListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+
 
   // ── Network monitor (always active) ────────────────────────
   useNetworkMonitor();
@@ -90,7 +94,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         const data = response.notification.request.content.data as Record<string, string>;
 
         if (data.rideId && user.isDriver()) {
-          router.push(`/(driver)/ride-request?rideId=${data.rideId}`);
+          router.push({ pathname: '/(driver)/ride-request', params:{ rideId:data.rideId}});
         }
 
         if (data.orderId && user.isDriver()) {
@@ -110,7 +114,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
           nextState === 'active'
         ) {
           // Check if there's a notification response waiting
-          const response = await Notifications.getLastNotificationResponseAsync();
+          const response = await Notifications.getLastNotificationResponse();
           if (response) {
             const data = response.notification.request.content.data as Record<string, string>;
             if (data.rideId  && user.isDriver()) router.push(`/(driver)/ride-request?rideId=${data.rideId}`);
@@ -126,16 +130,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       notifResponseListener.current?.remove();
       appStateSubscription.remove();
     };
-  }, [user]);
+  }, [user, router]);
 
   // ── Auth guard — redirect based on role ────────────────────
   useEffect(() => {
     if (loading) return;
 
-    const inAuth    = segments[0] === '(auth)';
-    const inAdmin   = segments[0] === '(admin)';
-    const inDriver  = segments[0] === '(driver)';
-    const inCustomer = segments[0] === '(customer)';
+    const seg        = segments[0] as string;
+    const inAuth     = seg === '(auth)';
+    const inAdmin    = seg === '(admin)';
+    const inDriver   = seg === '(driver)';
+    const inCustomer = seg === '(customer)';
 
     // Not logged in → always go to login
     if (!user && !inAuth) {
@@ -147,13 +152,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (user && inAuth) {
       if (user.isAdmin())    router.replace('/(admin)/dashboard');
       else if (user.isDriver()) router.replace('/(driver)/dashboard');
-      else                   router.replace('/(customer)/index');
+      else                   router.replace('/(customer)');
       return;
     }
 
     // Role guard: customer trying to access driver screens
     if (user?.isCustomer() && (inDriver || inAdmin)) {
-      router.replace('/(customer)/index');
+      router.replace('/(customer)');
       return;
     }
 
@@ -166,9 +171,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     // Role guard: non-admin trying to access admin screens
     if (user && !user.isAdmin() && inAdmin) {
       if (user.isDriver()) router.replace('/(driver)/dashboard');
-      else                 router.replace('/(customer)/index');
+      else                 router.replace('/(customer)');
     }
-  }, [user, loading, segments]);
+  }, [user, loading, segments, router]);
 
   return <>{children}</>;
 }

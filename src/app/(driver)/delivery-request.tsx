@@ -53,7 +53,7 @@ export default function DeliveryRequestScreen() {
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (secondsLeft === 60 || secondsLeft === 30) {

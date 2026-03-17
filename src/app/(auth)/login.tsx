@@ -4,7 +4,7 @@
 
 // src/app/(auth)/login.tsx
 import { useState }                    from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets }           from 'react-native-safe-area-context';
 import { useMutation }                 from '@tanstack/react-query';
 import { useRouter }                   from 'expo-router';
@@ -14,6 +14,7 @@ import { SupabaseAuthRepository }      from '@/shared/repositories/SupabaseAuthR
 import { PhoneInput }                  from '@/components/Input/PhoneInput';
 import { PrimaryButton }               from '@/components/Button/PrimaryButton';
 import { ThemeToggle }                 from '@/components/ThemeToggle';
+import {styles}                        from '@/shared/styles';
 
 const authRepo = new SupabaseAuthRepository();
 const useCase  = new LoginUseCase(authRepo);
@@ -39,7 +40,7 @@ export function LoginScreen() {
     onSuccess:  (user) => {
       if (user.isAdmin())    router.replace('/(admin)/dashboard');
       else if (user.isDriver()) router.replace('/(driver)/dashboard');
-      else                   router.replace('/(customer)/index');
+      else                   router.replace('/(customer)');
     },
     onError: (e: Error) => setOtpError(e.message),
   });

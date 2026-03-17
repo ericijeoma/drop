@@ -16,12 +16,11 @@ import { useSafeAreaInsets }           from 'react-native-safe-area-context';
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
 import { useTheme }                    from '@/shared/lib/theme';
 import { useAuth }                     from '@/shared/hooks/useAuth';
-import { PrimaryButton }               from '@/components/Button/PrimaryButton';
 import { SupabaseRideRepository }      from '@/shared/repositories/SupabaseRideRepository';
 import { SupabaseOrderRepository }     from '@/shared/repositories/SupabaseOrderRepository';
-import { RateDriverUseCase }           from '@/domains/rides/usecases/RateDriverUseCase';
+import { RateDriverUseCase }           from '@/domains/ride/usecases/RateDriverUseCase';
 import { formatNaira, formatDateTime, formatDistance } from '@/shared/utils/format';
-import type { Ride }                   from '@/domains/rides/entities/Ride';
+import type { Ride }                   from '@/domains/ride/entities/Ride';
 import type { Order }                  from '@/domains/delivery/entities/Order';
 
 const rideRepo  = new SupabaseRideRepository();

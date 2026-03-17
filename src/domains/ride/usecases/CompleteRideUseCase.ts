@@ -3,8 +3,8 @@
 // ────────────────────────────────────────────────────────────
 
 import type { RideRepository }   from '../repositories/RideRepository';
-import type { DriverRepository } from '@/domains/drivers/repositories/DriverRepository';
-import type { PaymentRepository } from '@/domains/payments/repositories/PaymentRepository';
+import type { DriverRepository } from '@/domains/driver/repositories/DriverRepository';
+import type { PaymentRepository } from '@/domains/payment/repositories/PaymentRepository';
 import { DomainError } from '@/shared/types';
 import { logger } from '@/shared/lib/logger';
 

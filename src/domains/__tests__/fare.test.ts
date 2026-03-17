@@ -2,8 +2,8 @@
 // Unit tests for fare calculation — the most critical business function.
 // Run with: npm test -- --testPathPattern=fare
 
-import { calculateFare, calculateDriverEarnings } from '../fare';
-import { RidePolicy } from '@/domains/rides/entities/RidePolicy';
+import { calculateFare, calculateDriverEarnings } from '../../shared/utils/fare';
+import { RidePolicy } from '@/domains/ride/entities/RidePolicy';
 
 describe('calculateFare', () => {
   // Fixed time for deterministic tests — 10am (not peak)

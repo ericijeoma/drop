@@ -40,10 +40,12 @@ export function useNetworkMonitor(
               await offlineQueue.remove(action.id);
               logger.info('Offline action replayed', { type: action.type });
             } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
               await offlineQueue.incrementRetry(action.id);
               logger.warn('Offline action replay failed', {
                 type: action.type,
                 retries: action.retries,
+                message
               });
             }
           }

@@ -21,7 +21,7 @@ import { useActiveRide }                from '@/shared/hooks/useActiveRide';
 import { useDriverLocation }            from '@/shared/hooks/useDriverLocation';
 import { AccessibleRideMap }            from '@/components/Map/AccessibleRideMap';
 import { PrimaryButton }                from '@/components/Button/PrimaryButton';
-import { CompleteRideUseCase }          from '@/domains/rides/usecases/CompleteRideUseCase';
+import { CompleteRideUseCase }          from '@/domains/ride/usecases/CompleteRideUseCase';
 import { SupabaseRideRepository }       from '@/shared/repositories/SupabaseRideRepository';
 import { SupabaseDriverRepository }     from '@/shared/repositories/SupabaseDriverRepository';
 import { SupabasePaymentRepository }    from '@/shared/repositories/SupabasePaymentRepository';
@@ -85,7 +85,6 @@ export default function TripScreen() {
   }
 
   // Which point to navigate toward depends on phase
-  const targetCoords   = phase === 'to_pickup' ? ride.pickupCoords : ride.dropoffCoords;
   const targetAddress  = phase === 'to_pickup' ? ride.pickupAddress : ride.dropoffAddress;
   const phaseLabel     = phase === 'to_pickup'
     ? 'Head to pickup location'

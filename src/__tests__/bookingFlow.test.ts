@@ -6,8 +6,8 @@
 // Tests the full booking flow from use case to repository.
 // Uses real domain entities with mocked Supabase responses.
 
-import { BookRideUseCase }  from '@/domains/rides/usecases/BookRideUseCase';
-import { Ride }             from '@/domains/rides/entities/Ride';
+import { BookRideUseCase }  from '@/domains/ride/usecases/BookRideUseCase';
+import { Ride }             from '@/domains/ride/entities/Ride';
 import { User }             from '@/domains/auth/entities/User';
 import { DomainError }      from '@/shared/types';
 

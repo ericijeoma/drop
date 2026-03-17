@@ -1,6 +1,6 @@
 // src/domains/rides/usecases/BookRideUseCase.ts
 
-import type { RideRepository } from '../repositories/RideRepository';
+import type { RideRepository, NearbyDriver } from '../repositories/RideRepository';
 import type { AuthRepository } from '@/domains/auth/repositories/AuthRepository';
 import { getRoute } from '@/shared/utils/directions';
 import { calculateFare } from '@/shared/utils/fare';
@@ -61,7 +61,7 @@ export class BookRideUseCase {
     const fareBreakdown = calculateFare(route.distanceKm, input.vehicleType);
 
     // 5. Find nearby drivers to check availability (escalating radius)
-    let nearbyDrivers = [];
+    let nearbyDrivers:NearbyDriver[] = [];
     for (const radiusKm of RidePolicy.MATCHING_RADII_KM) {
       nearbyDrivers = await this.rideRepository.findNearbyDrivers(
         input.pickupCoords,

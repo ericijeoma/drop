@@ -2,7 +2,7 @@
 // DAY 7 VERIFICATION CHECKLIST
 // ════════════════════════════════════════════════════════════
  
-/*
+
 Run all tests:
   npm test -- --coverage
  
@@ -50,5 +50,3 @@ METRICS TO RECORD AT END OF DAY 7:
 │ E2E: book ride flow             │ pass     │            │
 │ E2E: offline resilience         │ pass     │            │
 └─────────────────────────────────┴──────────┴────────────┘
-*/
- 

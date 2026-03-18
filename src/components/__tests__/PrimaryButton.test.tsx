@@ -4,7 +4,6 @@
 
 // src/components/__tests__/PrimaryButton.test.tsx
 import React                         from 'react';
-import {Animated, View}              from 'react-native'
 import { render, fireEvent }         from '@testing-library/react-native';
 import { PrimaryButton }             from '../Button/PrimaryButton';
 
@@ -24,13 +23,14 @@ jest.mock('@/shared/lib/theme', () => ({
 
 // Mock reanimated
 jest.mock('react-native-reanimated', () => {
+  const RN = jest.requireActual('react-native');
   
   return {
-    default: { ...Animated },
+    default: { ...RN.Animated },
     useSharedValue:    (v: unknown) => ({ value: v }),
     useAnimatedStyle:  (fn: () => object) => fn(),
     withSpring:        (v: unknown) => v,
-    View:              View,
+    View:              RN.View,
   };
 });
 

@@ -22,18 +22,18 @@ export class CompleteRideUseCase {
     const driver = await this.driverRepository.getByUserId(driverUserId);
     if (!driver) throw new DomainError('Driver not found.', 'DRIVER_NOT_FOUND');
 
-    // Verify driver owns this ride
-    if (ride.driverId !== driver.id) {
-      throw new DomainError('You are not assigned to this ride.', 'UNAUTHORIZED');
-    }
-
+    
     if (!ride.isActive()) {
       throw new DomainError(
         `Cannot complete a ride with status '${ride.status}'.`,
         'RIDE_NOT_ACTIVE'
       );
     }
-
+    
+    // Verify driver owns this ride
+    if (ride.driverId !== driver.id) {
+      throw new DomainError('You are not assigned to this ride.', 'UNAUTHORIZED');
+    }
     // Complete the ride
     await this.rideRepository.complete(rideId);
 

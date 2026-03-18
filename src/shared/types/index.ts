@@ -24,12 +24,16 @@ export type PackageSize   = 'small' | 'medium' | 'large';
 
 // ── Domain errors ────────────────────────────────────────────
 export class DomainError extends Error {
+  public readonly userMessage: string;   // ← add this field
+
   constructor(
     message: string,
     public readonly code: string
   ) {
-    super(message);
+    super(code);
+    this.userMessage = message;
     this.name = 'DomainError';
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 

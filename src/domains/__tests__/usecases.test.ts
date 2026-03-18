@@ -39,11 +39,11 @@ function makePendingRide(overrides = {}): Ride {
 }
 
 function makeActiveRide(overrides = {}): Ride {
-  return makePendingRide({ ...overrides, status: 'active', driverId: 'driver-1' });
+  return makePendingRide({ status: 'active', driverId: 'driver-1', ...overrides });
 }
 
 function makeCompletedRide(overrides = {}): Ride {
-  return makePendingRide({ ...overrides, status: 'completed', driverId: 'driver-1' });
+  return makePendingRide({ status: 'completed', driverId: 'driver-1', ...overrides });
 }
 
 function makeDriver(overrides = {}): DriverProfile {

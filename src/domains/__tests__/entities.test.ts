@@ -90,7 +90,7 @@ describe("User entity", () => {
   it("assertNotBanned throws for banned user", () => {
     const user = User.create({ ...validUserProps, isBanned: true });
     expect(() => user.assertNotBanned()).toThrow(DomainError);
-    expect(() => user.assertNotBanned()).toThrow("suspended");
+    expect(() => user.assertNotBanned()).toThrow("USER_BANNED");
   });
 
   it("assertNotBanned passes for active user", () => {

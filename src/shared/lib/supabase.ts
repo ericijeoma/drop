@@ -7,10 +7,10 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
 const SUPABASE_URL  = Constants.expoConfig?.extra?.supabaseUrl  as string;
-const SUPABASE_ANON = Constants.expoConfig?.extra?.supabaseAnon as string;
+const SUPABASE_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.supabaseKey  as string
 
-if (!SUPABASE_URL || !SUPABASE_ANON) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY in app config');
+if (!SUPABASE_URL) {
+  throw new Error('Missing SUPABASE_URL in app config');
 }
 
 // Custom SecureStore adapter — sessions survive app restarts securely
@@ -50,7 +50,7 @@ const fetchWithTimeout = (
     .finally(() => clearTimeout(timeoutId));
 };
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage:            secureStoreAdapter,
     autoRefreshToken:   true,

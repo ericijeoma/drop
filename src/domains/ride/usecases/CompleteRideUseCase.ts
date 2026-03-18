@@ -41,7 +41,7 @@ export class CompleteRideUseCase {
     await this.driverRepository.updateStatus(driver.id, 'online');
 
     // Create pending payment record (actual charge via Edge Function)
-    const idempotencyKey = `${rideId}:payment:${Date.now()}`;
+    const idempotencyKey = `ride-complete:${rideId}`;
     await this.paymentRepository.create({
       rideId:          rideId,
       orderId:         null,

@@ -4,8 +4,6 @@
 // Degrades gracefully offline.
 // ────────────────────────────────────────────────────────────
 
-import { supabase } from './supabase';
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogEntry {
@@ -21,14 +19,17 @@ async function writeToSupabase(
   entry: LogEntry
 ): Promise<void> {
   try {
+    // ✅ Lazy import — only runs in production at call time, never at module load
+    const { supabase } = await import('./supabase');
     await supabase.from('app_logs').insert({
       user_id: userId,
       level:   entry.level,
       message: entry.message,
       context: entry.context,
     });
-  } catch {
+  } catch (error){
     // Log write failures are silently ignored — never crash the app for logging
+    console.error("Log failed", error);
   }
 }
 
@@ -39,10 +40,12 @@ function log(level: LogLevel, message: string, context: Record<string, unknown> 
   }
   // In production, only log warn+ to Supabase to reduce writes
   if (!isDev && (level === 'warn' || level === 'error')) {
-    // Get current user ID asynchronously — fire and forget
-    supabase.auth.getUser().then(({ data }) => {
-      const userId = data?.user?.id ?? null;
-      writeToSupabase(userId, { level, message, context });
+    // ✅ Lazy import here too
+    import('./supabase').then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data }) => {
+        const userId = data?.user?.id ?? null;
+        writeToSupabase(userId, { level, message, context });
+      });
     });
   }
 }

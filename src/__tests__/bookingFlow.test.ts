@@ -18,20 +18,6 @@ jest.mock('@/shared/utils/directions', () => ({
   }),
 }));
 
-// Add this — Jest will hoist it above all imports automatically
-jest.mock('@/shared/lib/supabase', () => ({
-  supabase: {
-    from: () => ({
-      upsert:  jest.fn().mockResolvedValue({ error: null }),
-      update:  jest.fn().mockReturnThis(),
-      eq:      jest.fn().mockReturnThis(),
-      select:  jest.fn().mockResolvedValue({ data: [], error: null }),
-    }),
-    auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'auth-1' } } }) },
-    rpc:  jest.fn().mockResolvedValue({ data: {}, error: null }),
-  },
-}));
-
 describe('Full booking flow integration', () => {
   const customer = User.create({
     id: 'customer-1', authId: 'auth-1', phone: '+2348012345678',

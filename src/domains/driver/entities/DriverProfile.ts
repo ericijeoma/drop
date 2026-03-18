@@ -141,16 +141,6 @@ export class DriverProfile {
   setBusy(): void {
     this._status = "busy";
   }
-  
-  setOnline(): void {
-  if (!this.props.isVerified) {
-    throw new DomainError(
-      'Driver must be verified to go online.',
-      'DRIVER_NOT_VERIFIED',
-    );
-  }
-  this._status = 'online';
-}
 
   updateLocation(coords: Coords): void {
     if (this._status === "offline") {

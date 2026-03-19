@@ -4,7 +4,7 @@
 
 import type { OrderRepository } from '../repositories/OrderRepository';
 import type { AuthRepository }  from '@/domains/auth/repositories/AuthRepository';
-import type { RideRepository }  from '@/domains/ride/repositories/RideRepository';
+import type { CustomerActivityService } from '@/shared/services/CustomerActivityService';
 import { getRoute }             from '@/shared/utils/directions';
 import { calculateFare }        from '@/shared/utils/fare';
 import { DomainError }          from '@/shared/types';
@@ -25,7 +25,7 @@ export class PlaceOrderUseCase {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly authRepository:  AuthRepository,
-    private readonly rideRepository:  RideRepository
+    private readonly customerActivity:     CustomerActivityService,
   ) {}
 
   async execute(input: PlaceOrderInput): Promise<{ orderId: string; fareAmount: number }> {
@@ -34,24 +34,9 @@ export class PlaceOrderUseCase {
     user.assertNotBanned();
     user.assertIsCustomer();
 
-    // Business rule: customer cannot have active ride AND active order
-    const [activeRide, activeOrder] = await Promise.all([
-      this.rideRepository.getActiveRideForCustomer(input.customerId),
-      this.orderRepository.getActiveOrderForCustomer(input.customerId),
-    ]);
-
-    if (activeRide) {
-      throw new DomainError(
-        'You have an active ride. Cancel it before sending a package.',
-        'CUSTOMER_HAS_ACTIVE_RIDE'
-      );
-    }
-    if (activeOrder) {
-      throw new DomainError(
-        'You already have an active delivery. Wait for it to complete.',
-        'CUSTOMER_HAS_ACTIVE_ORDER'
-      );
-    }
+    // ✅ Cross-domain check delegated to shared service
+    await this.customerActivity.assertNoActiveActivity(input.customerId);
+    
 
     if (!input.packageDescription.trim()) {
       throw new DomainError('Please describe the package.', 'MISSING_PACKAGE_DESC');

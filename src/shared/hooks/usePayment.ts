@@ -1,25 +1,30 @@
+// ────────────────────────────────────────────────────────────
 // src/shared/hooks/usePayment.ts
 //
-// Shared payment hook — handles Stripe collection for BOTH rides and orders.
-// Accepts either rideId or orderId. Never both.
-//
-// Used by:
-//   src/app/(customer)/track-ride.tsx     → passes { rideId }
-//   src/app/(customer)/track-delivery.tsx → passes { orderId }
+// Now only owns: Stripe UI presentation.
+// Fetching and confirming payment go through use cases.
+// Zero direct Supabase calls.
+// ────────────────────────────────────────────────────────────
 
-import { useState }              from 'react';
-import { useStripe }             from '@stripe/stripe-react-native';
-import { useMutation }           from '@tanstack/react-query';
-import { supabase }              from '@/shared/lib/supabase';
-import { logger }                from '@/shared/lib/logger';
-import { DomainError }           from '@/shared/types';
+import { useState }                    from 'react';
+import { useStripe }                   from '@stripe/stripe-react-native';
+import { useMutation }                 from '@tanstack/react-query';
+import { DomainError }                 from '@/shared/types';
+import { logger }                      from '@/shared/lib/logger';
+import { InitiatePaymentUseCase }      from '@/domains/payment/usecases/InitiatePaymentUseCase';
+import { CapturePaymentUseCase }       from '@/domains/payment/usecases/CapturePaymentUseCase';
+import { SupabasePaymentRepository }   from '@/shared/repositories/SupabasePaymentRepository';
 
-// ── Input: exactly one of rideId or orderId must be provided ──
+// ── Use case instances ────────────────────────────────────────
+const paymentRepo    = new SupabasePaymentRepository();
+const initiateUseCase = new InitiatePaymentUseCase(paymentRepo);
+const captureUseCase  = new CapturePaymentUseCase(paymentRepo);
+
+// ── Types ─────────────────────────────────────────────────────
 type PaymentTarget =
   | { rideId: string;  orderId?: never }
   | { orderId: string; rideId?: never  };
 
-// ✅ type alias with & handles unions correctly
 type UsePaymentOptions = PaymentTarget & {
   fareAmount: number;
   onSuccess:  () => void;
@@ -27,10 +32,10 @@ type UsePaymentOptions = PaymentTarget & {
 };
 
 interface UsePaymentResult {
-  pay:          () => Promise<void>;
-  isPaying:     boolean;
-  isComplete:   boolean;
-  error:        string | null;
+  pay:        () => Promise<void>;
+  isPaying:   boolean;
+  isComplete: boolean;
+  error:      string | null;
 }
 
 export function usePayment({
@@ -48,50 +53,25 @@ export function usePayment({
     mutationFn: async () => {
       setError(null);
 
-      // ── Step 1: Fetch the pending payment record ─────────────
-      // The payment record was created by CompleteRideUseCase or
-      // ConfirmDeliveryUseCase when the trip ended.
-      const column = rideId ? 'ride_id' : 'order_id';
-      const value  = rideId ?? orderId!;
+      // ── Step 1: Fetch payment record + create PaymentIntent ──
+      // Delegated entirely to InitiatePaymentUseCase —
+      // no Supabase calls here.
+      const sheetData = await initiateUseCase.execute(
+        rideId  ?? null,
+        orderId ?? null,
+      );
 
-      const { data: payment, error: fetchErr } = await supabase
-        .from('payments')
-        .select('id, amount, idempotency_key, stripe_payment_intent_id, status')
-        .eq(column, value)
-        .eq('status', 'pending')
-        .maybeSingle();
-
-      if (fetchErr) throw new DomainError('Could not load payment details.', 'PAYMENT_FETCH_FAILED');
-
-      // Idempotency guard — already captured, skip Stripe entirely
-      if (!payment || payment.status === 'captured') {
+      // Already captured — skip Stripe entirely
+      if (!sheetData) {
         setIsComplete(true);
         onSuccess();
         return;
       }
 
-      // ── Step 2: Create a Stripe PaymentIntent via Edge Function ─
-      // The Edge Function holds the Stripe secret key — never the client.
-      const { data: intentData, error: intentErr } = await supabase.functions.invoke(
-        'create-payment-intent',
-        {
-          body: {
-            paymentId:      payment.id,
-            amount:         payment.amount,
-            currency:       'ngn',
-            idempotencyKey: payment.idempotency_key,
-          },
-        }
-      );
-
-      if (intentErr || !intentData?.clientSecret) {
-        throw new DomainError('Could not initialise payment.', 'INTENT_CREATION_FAILED');
-      }
-
-      // ── Step 3: Initialise Stripe Payment Sheet ───────────────
+      // ── Step 2: Initialise Stripe Payment Sheet ───────────────
       const { error: initErr } = await initPaymentSheet({
-        merchantDisplayName:        'Drop',
-        paymentIntentClientSecret:  intentData.clientSecret,
+        merchantDisplayName:       'Drop',
+        paymentIntentClientSecret: sheetData.clientSecret,
         defaultBillingDetails: {
           address: { country: 'NG' },
         },
@@ -101,10 +81,7 @@ export function usePayment({
             background: '#1A1B1F',
           },
         },
-        // Allow Apple Pay / Google Pay where available
-        applePay: {
-          merchantCountryCode: 'NG',
-        },
+        applePay: { merchantCountryCode: 'NG' },
         googlePay: {
           merchantCountryCode: 'NG',
           testEnv:             __DEV__,
@@ -113,30 +90,20 @@ export function usePayment({
 
       if (initErr) throw new DomainError(initErr.message, 'SHEET_INIT_FAILED');
 
-      // ── Step 4: Present the sheet — user taps Pay ─────────────
+      // ── Step 3: Present sheet — user taps Pay ─────────────────
       const { error: presentErr } = await presentPaymentSheet();
 
       if (presentErr) {
-        // User cancelled — not an error worth logging
         if (presentErr.code === 'Canceled') return;
         throw new DomainError(presentErr.message, 'PAYMENT_DECLINED');
       }
 
-      // ── Step 5: Confirm capture on our backend ────────────────
-      const { error: captureErr } = await supabase.functions.invoke(
-        'process-payment',
-        { body: { paymentId: payment.id } }
-      );
+      // ── Step 4: Confirm capture via use case ──────────────────
+      // No Supabase call here — delegated to CapturePaymentUseCase.
+      await captureUseCase.execute(sheetData.paymentId);
 
-      if (captureErr) {
-        throw new DomainError(
-          'Payment was taken but confirmation failed. Contact support.',
-          'CAPTURE_CONFIRM_FAILED'
-        );
-      }
-
-      logger.info('Payment captured', {
-        paymentId: payment.id,
+      logger.info('Payment flow complete', {
+        paymentId: sheetData.paymentId,
         rideId,
         orderId,
         amount: fareAmount,
@@ -152,7 +119,11 @@ export function usePayment({
         : 'Payment failed. Please try again.';
       setError(message);
       onError?.(message);
-      logger.error('Payment failed', { rideId, orderId, error: String(e) });
+      logger.error('Payment failed', {
+        rideId,
+        orderId,
+        error: e instanceof Error ? e.message : String(e),
+      });
     },
   });
 

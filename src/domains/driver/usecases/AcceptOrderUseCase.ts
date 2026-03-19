@@ -5,20 +5,19 @@
 // Owns the full "driver accepts order" transaction.
 // ────────────────────────────────────────────────────────────
 
-import type { OrderRepository }  from '@/domains/delivery/repositories/OrderRepository';
-import type { DriverRepository } from '@/domains/driver/repositories/DriverRepository';
-import type { Order }            from '@/domains/delivery/entities/Order';
-import { DomainError }           from '@/shared/types';
-import { logger }                from '@/shared/lib/logger';
+import type { OrderRepository } from "@/domains/delivery/repositories/OrderRepository";
+import type { DriverRepository } from "@/domains/driver/repositories/DriverRepository";
+import type { Order } from "@/domains/delivery/entities/Order";
+import { DomainError } from "@/shared/types";
+import { logger } from "@/shared/lib/logger";
 
 export class AcceptOrderUseCase {
   constructor(
-    private readonly orderRepository:  OrderRepository,
+    private readonly orderRepository: OrderRepository,
     private readonly driverRepository: DriverRepository,
   ) {}
 
   async execute(orderId: string, driverUserId: string): Promise<Order> {
-
     // ── Step 1: Resolve driver profile from the user account ──
     //
     // The caller (screen/controller) knows the driverUserId — who
@@ -26,7 +25,7 @@ export class AcceptOrderUseCase {
     // who they are in the driver domain — to act on their profile.
     const driver = await this.driverRepository.getByUserId(driverUserId);
     if (!driver) {
-      throw new DomainError('Driver profile not found.', 'DRIVER_NOT_FOUND');
+      throw new DomainError("Driver profile not found.", "DRIVER_NOT_FOUND");
     }
 
     // ── Step 2: Enforce domain rules through the entity ────────
@@ -34,8 +33,15 @@ export class AcceptOrderUseCase {
     // A driver must be online and verified before accepting orders.
     // These checks live on the entity — not here — because they
     // are business rules, not infrastructure concerns.
-    driver.assertVerified();   // throws if is_verified === false
-    driver.assertOnline();     // throws if status !== 'online'
+    if (driver.status !== "busy") {
+      driver.assertVerified();
+      driver.assertOnline();
+    } else {
+      throw new DomainError(
+        "You already have an active delivery.",
+        "DRIVER_ALREADY_BUSY",
+      );
+    }
 
     // ── Step 3: Atomically claim the order ─────────────────────
     //
@@ -50,10 +56,10 @@ export class AcceptOrderUseCase {
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      if (message === 'ORDER_NOT_AVAILABLE') {
+      if (message === "ORDER_NOT_AVAILABLE") {
         throw new DomainError(
-          'This order has already been taken.',
-          'ORDER_NOT_AVAILABLE',
+          "This order has already been taken.",
+          "ORDER_NOT_AVAILABLE",
         );
       }
       throw err; // unexpected error — rethrow as-is
@@ -69,14 +75,14 @@ export class AcceptOrderUseCase {
     // status is recoverable (next status update fixes it). A rolled-
     // back order would confuse the customer and the system both.
     try {
-      await this.driverRepository.updateStatus(driver.id, 'busy');
+      await this.driverRepository.updateStatus(driver.id, "busy");
     } catch (err) {
       // Non-fatal: log for ops team to investigate. The driver's
       // next status ping or order completion will correct the state.
-      logger.error('AcceptOrderUseCase: failed to set driver busy', {
+      logger.error("AcceptOrderUseCase: failed to set driver busy", {
         driverId: driver.id,
         orderId,
-        error:    err instanceof Error ? err.message : String(err),
+        error: err instanceof Error ? err.message : String(err),
       });
     }
 

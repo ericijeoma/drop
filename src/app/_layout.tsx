@@ -31,11 +31,15 @@ import { supabase }                      from '@/shared/lib/supabase';
 import { useAuth }                       from '@/shared/hooks/useAuth';
 import { useNetworkMonitor }             from '@/shared/hooks/useNetworkMonitor';
 import { SupabaseDriverRepository }      from '@/shared/repositories/SupabaseDriverRepository';
+import { preventAutoHideAsync, hideAsync } from 'expo-splash-screen';
 import { logger }                        from '@/shared/lib/logger';
 
 // ── Notification display behaviour while app is foregrounded ──
 // Show a banner even when the app is open (e.g. driver gets a ride request
 // while already in the app on a different screen)
+
+preventAutoHideAsync();
+
 Notifications.setNotificationHandler({
   // ✅ Fix — add the two new required fields
 handleNotification: async () => ({
@@ -135,6 +139,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   // ── Auth guard — redirect based on role ────────────────────
   useEffect(() => {
     if (loading) return;
+    hideAsync();
 
     const seg        = segments[0] as string;
     const inAuth     = seg === '(auth)';

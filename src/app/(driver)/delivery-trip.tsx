@@ -6,7 +6,7 @@
 //
 // File path: src/app/(driver)/delivery-trip.tsx
 
-import { useState, useCallback} from 'react';
+import { useState, useEffect, useCallback, useRef} from 'react';
 import {
   View, Text, StyleSheet,
   Alert, ActivityIndicator,
@@ -22,6 +22,7 @@ import { useDriverLocation }              from '@/shared/hooks/useDriverLocation
 import { AccessibleRideMap }              from '@/components/Map/AccessibleRideMap';
 import { PrimaryButton }                  from '@/components/Button/PrimaryButton';
 import { ConfirmDeliveryUseCase }         from '@/domains/delivery/usecases/ConfirmDeliveryUseCase';
+import { CancelDeliveryUseCase }          from '@/domains/delivery/usecases/CancelDeliveryUseCase';
 import { SupabaseOrderRepository }        from '@/shared/repositories/SupabaseOrderRepository';
 import { SupabaseDriverRepository }       from '@/shared/repositories/SupabaseDriverRepository';
 import { SupabasePaymentRepository }      from '@/shared/repositories/SupabasePaymentRepository';
@@ -33,6 +34,7 @@ const orderRepo   = new SupabaseOrderRepository();
 const driverRepo  = new SupabaseDriverRepository();
 const paymentRepo = new SupabasePaymentRepository();
 const useCase     = new ConfirmDeliveryUseCase(orderRepo, driverRepo, paymentRepo);
+const cancelUseCase = new CancelDeliveryUseCase(orderRepo, driverRepo);
 
 type DeliveryPhase = 'to_pickup' | 'to_dropoff' | 'confirming';
 
@@ -85,8 +87,12 @@ export default function DeliveryTripScreen() {
   };
 
   // ── Upload photo to Supabase Storage ─────────────────────
+  const uploadAbortRef = useRef<AbortController | null>(null);
+
   const uploadPhoto = async (localUri: string): Promise<string> => {
-    const response   = await fetch(localUri);
+    const controller          = new AbortController();
+    uploadAbortRef.current    = controller;
+    const response = await fetch(localUri, { signal: controller.signal });
     const blob       = await response.blob();
     const ext        = localUri.split('.').pop() ?? 'jpg';
     const filename   = `deliveries/${orderId}/${Date.now()}.${ext}`;
@@ -103,6 +109,13 @@ export default function DeliveryTripScreen() {
 
     return data.publicUrl;
   };
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      uploadAbortRef.current?.abort();
+    };
+  }, []);
 
   // ── Confirm delivery mutation ─────────────────────────────
   const confirmMutation = useMutation({
@@ -259,8 +272,7 @@ export default function DeliveryTripScreen() {
                   text: 'Cancel',
                   style: 'destructive',
                   onPress: async () => {
-                    await orderRepo.cancel(orderId!);
-                    await driverRepo.updateStatus(user!.id, 'online');
+                    await cancelUseCase.execute(orderId!, user!.id);
                     router.replace('/(driver)/dashboard');
                   },
                 },

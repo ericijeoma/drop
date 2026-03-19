@@ -63,6 +63,7 @@ export function useRealtimeWithFallback<T>({
   useEffect(() => { fallbackQueryRef.current = fallbackQuery; }, [fallbackQuery]);
 
   useEffect(() => {
+    let isMounted = true;
     const channelName = `${table}:${filter?.column ?? 'all'}:${filter?.value ?? 'all'}`;
     const filterStr   = filter ? `${filter.column}=eq.${filter.value}` : undefined;
 
@@ -84,6 +85,7 @@ export function useRealtimeWithFallback<T>({
         }
       )
       .subscribe((status) => {
+        if (!isMounted) return;
         if (status === 'SUBSCRIBED') {
           setIsRealtime(true);
           if (pollIntervalRef.current) {
@@ -110,6 +112,7 @@ export function useRealtimeWithFallback<T>({
     fallbackQueryRef.current();
 
     return () => {
+      isMounted = false;  
       channelRef.current = null;
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);

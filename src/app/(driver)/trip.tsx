@@ -25,6 +25,7 @@ import { CompleteRideUseCase }          from '@/domains/ride/usecases/CompleteRi
 import { SupabaseRideRepository }       from '@/shared/repositories/SupabaseRideRepository';
 import { SupabaseDriverRepository }     from '@/shared/repositories/SupabaseDriverRepository';
 import { SupabasePaymentRepository }    from '@/shared/repositories/SupabasePaymentRepository';
+import { CancelRideUseCase }            from '@/domains/ride/usecases/CancelRideUseCase';
 import { formatNaira }                  from '@/shared/utils/format';
 import type { Coords }                  from '@/shared/types';
 
@@ -32,6 +33,7 @@ const rideRepo    = new SupabaseRideRepository();
 const driverRepo  = new SupabaseDriverRepository();
 const paymentRepo = new SupabasePaymentRepository();
 const useCase     = new CompleteRideUseCase(rideRepo, driverRepo, paymentRepo);
+const cancelUseCase = new CancelRideUseCase(rideRepo, driverRepo);
 
 // The trip has two phases from the driver's perspective
 type TripPhase = 'to_pickup' | 'to_dropoff';
@@ -178,8 +180,7 @@ export default function TripScreen() {
                   text: 'Cancel',
                   style: 'destructive',
                   onPress: async () => {
-                    await rideRepo.cancel(rideId!);
-                    await driverRepo.updateStatus(user!.id, 'online');
+                    await cancelUseCase.execute(rideId!, user!.id);
                     router.replace('/(driver)/dashboard');
                   },
                 },

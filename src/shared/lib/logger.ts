@@ -29,7 +29,7 @@ async function writeToSupabase(
     });
   } catch (error){
     // Log write failures are silently ignored — never crash the app for logging
-    console.error("Log failed", error);
+    console.error("Log failed", error); 
   }
 }
 

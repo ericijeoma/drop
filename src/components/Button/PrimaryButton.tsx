@@ -15,7 +15,7 @@ interface PrimaryButtonProps {
   accessibilityHint?:  string;
 }
 
-export function PrimaryButton({
+export default function PrimaryButton({
   label,
   onPress,
   loading  = false,

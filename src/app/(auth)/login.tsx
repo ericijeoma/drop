@@ -11,8 +11,8 @@ import { useRouter }                   from 'expo-router';
 import { useTheme }                    from '@/shared/lib/theme';
 import { LoginUseCase }                from '@/domains/auth/usecases/LoginUseCase';
 import { SupabaseAuthRepository }      from '@/shared/repositories/SupabaseAuthRepository';
-import { PhoneInput }                  from '@/components/Input/PhoneInput';
-import { PrimaryButton }               from '@/components/Button/PrimaryButton';
+import  PhoneInput                   from '@/components/Input/PhoneInput';
+import PrimaryButton                from '@/components/Button/PrimaryButton';
 import { ThemeToggle }                 from '@/components/ThemeToggle';
 import {styles}                        from '@/shared/styles';
 

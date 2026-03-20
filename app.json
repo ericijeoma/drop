@@ -9,15 +9,15 @@
     "orientation": "portrait",
     "scheme": "drop",
     "userInterfaceStyle": "automatic",
-
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#07080d"
     },
-    "assetBundlePatterns": ["**/*"],
-
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.drop.app",
@@ -27,10 +27,13 @@
         "NSCameraUsageDescription": "Drop uses your camera to photograph proof of delivery.",
         "NSPhotoLibraryUsageDescription": "Drop accesses your photos to upload proof of delivery images.",
         "NSMicrophoneUsageDescription": "Required by the camera system. Drop does not record audio.",
-        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ]
       }
     },
-
     "android": {
       "package": "com.drop.app",
       "adaptiveIcon": {
@@ -49,7 +52,6 @@
         "POST_NOTIFICATIONS"
       ]
     },
-
     "plugins": [
       "expo-router",
       [
@@ -70,7 +72,9 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#07080d",
-          "sounds": ["./assets/sounds/notification.wav"]
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ]
         }
       ],
       [
@@ -80,15 +84,17 @@
           "enableGooglePay": true
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-  "supabaseUrl": "https://hpycjjgjafnhogdguyhx.supabase.co",
-  "supabaseKey": "sb_publishable_vQNy1K52NxjWtJgfrLL1Gg_n_myURy4"
-}
+      "supabaseUrl": "https://hpycjjgjafnhogdguyhx.supabase.co",
+      "supabaseKey": "sb_publishable_vQNy1K52NxjWtJgfrLL1Gg_n_myURy4"
+    }
   }
 }

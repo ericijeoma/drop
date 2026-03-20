@@ -15,7 +15,7 @@ interface PhoneInputProps {
   autoFocus?: boolean;
 }
 
-export function PhoneInput({
+export default function PhoneInput({
   value,
   onChangeText,
   error,

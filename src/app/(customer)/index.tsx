@@ -82,3 +82,4 @@ export function CustomerHomeScreen() {
 }
 
 
+export default CustomerHomeScreen;

@@ -61,3 +61,4 @@ export function AdminDashboardScreen() {
 }
 
 
+export default AdminDashboardScreen;

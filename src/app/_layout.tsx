@@ -253,8 +253,8 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <StripeProvider
           publishableKey={stripeKey}
-          merchantIdentifier="merchant.com.drop.app"   // matches app.json
-          urlScheme="drop"                              // matches app.json scheme
+          merchantIdentifier="merchant.com.drop.app"   
+          urlScheme="drop"                              
         >
           <PersistQueryClientProvider
             client={queryClient}

@@ -107,4 +107,4 @@ export function BookRideScreen() {
   );
 }
 
-
+export default BookRideScreen;

@@ -59,7 +59,7 @@ export function LoginScreen() {
         </View>
 
         <Text style={[styles.loginTitle, { color: theme.text }]} accessibilityRole="header">
-          Drop
+          Welcome 👋
         </Text>
         <Text style={[styles.loginSubtitle, { color: theme.textSecondary }]}>
           {stage === 'phone' ? 'Enter your phone number to get started' : `Enter the 6-digit code sent to ${phone}`}

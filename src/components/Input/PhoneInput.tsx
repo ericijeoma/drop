@@ -45,7 +45,7 @@ export default function PhoneInput({
           +234
         </Text>
         <TextInput
-          value={value}
+          value={value.startsWith("+234")? value.slice(4):value}
           onChangeText={(text) => {
             // Strip non-digits
             const digits = text.replace(/\D/g, "");
